@@ -8,7 +8,7 @@ export default function Navbar() {
 
         <nav style={styles.nav}>
           <NavLink to="/login" style={linkStyle}>Login</NavLink>
-          <NavLink to="/recipes" style={linkStyle}>Recepti</NavLink>
+          <NavLink to="/recipes" style={linkStyle}>Unos recepata</NavLink>
           <NavLink to="/categories" style={linkStyle}>Kategorije</NavLink>
         </nav>
       </div>
@@ -17,26 +17,41 @@ export default function Navbar() {
 }
 
 const styles = {
-  header: { background: "#fff", borderBottom: "1px solid #eee" },
+  header: {
+    background: "#fff",
+    borderBottom: "1px solid rgba(0,0,0,0.06)",
+  },
+
   inner: {
-    maxWidth: 1100,
+    maxWidth: 980,              // 🔸 isto kao content
     margin: "0 auto",
     padding: "14px 24px",
     display: "flex",
     alignItems: "center",
     justifyContent: "space-between",
-    gap: 16,
   },
-  brand: { fontWeight: 700, letterSpacing: 0.2 },
-  nav: { display: "flex", gap: 12 },
+
+  brand: {
+    fontWeight: 700,
+    fontSize: 16,
+    letterSpacing: 0.3,
+  },
+
+  nav: {
+    display: "flex",
+    gap: 8,
+  },
 };
 
 function linkStyle({ isActive }) {
   return {
     textDecoration: "none",
-    padding: "8px 12px",
-    borderRadius: 10,
+    padding: "8px 14px",
+    borderRadius: 999,            // 🔸 pill shape
+    fontSize: 14,
+    fontWeight: 500,
     color: "#222",
-    background: isActive ? "#f3eadc" : "transparent",
+    background: isActive ? "#efe3cf" : "transparent",
+    transition: "all .2s ease",
   };
 }
