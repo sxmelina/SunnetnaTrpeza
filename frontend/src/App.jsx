@@ -3,8 +3,9 @@ import Navbar from "./components/Navbar";
 
 import Login from "./pages/Login";
 import Register from "./pages/Register";
-import Recipes from "./pages/Recipes";
 import Categories from "./pages/Categories";
+import AddRecipes from "./pages/AddRecipes";
+import RecipesList from "./pages/RecipesList";
 
 import { AuthProvider } from "./auth/AuthContext";
 import ProtectedRoute from "./auth/ProtectedRoute";
@@ -25,10 +26,19 @@ export default function App() {
 
               {/* protected */}
               <Route
+                path="/add-recipe"
+                element={
+                  <ProtectedRoute>
+                    <AddRecipes />
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
                 path="/recipes"
                 element={
                   <ProtectedRoute>
-                    <Recipes />
+                    <RecipesList />
                   </ProtectedRoute>
                 }
               />

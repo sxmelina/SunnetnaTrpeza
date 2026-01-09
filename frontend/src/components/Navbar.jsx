@@ -14,8 +14,12 @@ export default function Navbar() {
             Login
           </NavLink>
 
-          <NavLink to="/recipes" className={({ isActive }) => (isActive ? "navlink active" : "navlink")}>
+          <NavLink to="/add-recipe" className={({ isActive }) => (isActive ? "navlink active" : "navlink")}>
             Dodaj recept
+          </NavLink>
+
+          <NavLink to="/recipes" className={({ isActive }) => (isActive ? "navlink active" : "navlink")}>
+            Recepti
           </NavLink>
 
           <NavLink to="/categories" className={({ isActive }) => (isActive ? "navlink active" : "navlink")}>

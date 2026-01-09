@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import api from "../api/client";
 import { useAuth } from "../auth/AuthContext";
+import "./Categories.css";
 
 export default function Categories() {
   const { token } = useAuth();
@@ -8,6 +9,7 @@ export default function Categories() {
   const [categories, setCategories] = useState([]);
   const [name, setName] = useState("");
   const [error, setError] = useState("");
+  const [saving, setSaving] = useState(false);
 
   async function fetchCategories() {
     try {
@@ -37,6 +39,7 @@ export default function Categories() {
     }
 
     try {
+      setSaving(true);
       await api.post(
         "/categories",
         { name: name.trim() },
@@ -47,52 +50,63 @@ export default function Categories() {
       fetchCategories();
     } catch {
       setError("Spremanje nije uspjelo.");
+    } finally {
+      setSaving(false);
     }
   }
 
   return (
-    <div style={{ maxWidth: 600 }}>
-      <h2>Kategorije</h2>
+    <div className="categories-shell">
+      <div className="categories-page">
+        <div className="categories-header">
+          <div>
+            <h2 className="categories-title">Kategorije</h2>
+            <p className="categories-subtitle">
+              Dodaj kategorije (npr. Med, Napici, Žitarice…) da bi ih koristila pri dodavanju recepata.
+            </p>
+          </div>
+        </div>
 
-      {error && <p style={{ color: "crimson" }}>{error}</p>}
+        <div className="categories-card">
+          <h3 className="categories-h3">Dodaj kategoriju</h3>
 
-      <form onSubmit={handleSubmit} style={{ marginBottom: 20 }}>
-        <input
-          placeholder="npr. Med, Napici, Zitarice..."
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          style={styles.input}
-        />
-        <button style={styles.btn}>Dodaj</button>
-      </form>
+          {error && <p className="categories-error">{error}</p>}
 
-      {categories.length === 0 ? (
-        <p>Nema kategorija.</p>
-      ) : (
-        <ul>
-          {categories.map((c) => (
-            <li key={c.id}>{c.name}</li>
-          ))}
-        </ul>
-      )}
+          <form onSubmit={handleSubmit} className="categories-form">
+            <input
+              className="categories-input"
+              placeholder="npr. Med, Napici, Žitarice..."
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+            />
+            <button className="categories-btn" disabled={saving}>
+              {saving ? "Spremam..." : "Dodaj"}
+            </button>
+          </form>
+        </div>
+
+        <div className="categories-card">
+          <div className="categories-listTop">
+            <h3 className="categories-h3" style={{ margin: 0 }}>
+              Lista kategorija
+            </h3>
+            <span className="categories-count">Ukupno: {categories.length}</span>
+          </div>
+
+          {categories.length === 0 ? (
+            <p className="categories-empty">Nema kategorija.</p>
+          ) : (
+            <div className="categories-grid">
+              {categories.map((c) => (
+                <span className="categories-chip" key={c.id}>
+                  <span className="categories-chipDot" />
+                  {c.name}
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
-
-const styles = {
-  input: {
-    width: "100%",
-    padding: 10,
-    borderRadius: 10,
-    border: "1px solid #ccc",
-    marginBottom: 10,
-  },
-  btn: {
-    padding: "8px 14px",
-    borderRadius: 10,
-    border: "none",
-    background: "#c8a96a",
-    fontWeight: 600,
-    cursor: "pointer",
-  },
-};

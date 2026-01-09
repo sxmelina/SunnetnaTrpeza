@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import api from "../api/client";
 import { useAuth } from "../auth/AuthContext";
 
@@ -8,73 +8,39 @@ const SOURCE_TYPES = [
   { value: "ZDRAVO", label: "Zdravo (općenito)" },
 ];
 
-export default function Recipes() {
+export default function AddRecipes() {
   const { token } = useAuth();
 
-  const [recipes, setRecipes] = useState([]);
   const [categories, setCategories] = useState([]);
-
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   // forma
-  const [mode, setMode] = useState("create"); // create | edit
+  const [mode, setMode] = useState("create"); // create | edit (ako ti treba kasnije)
   const [editingId, setEditingId] = useState(null);
 
   const [title, setTitle] = useState("");
   const [shortDescription, setShortDescription] = useState("");
   const [instructions, setInstructions] = useState("");
-  const [categoryId, setCategoryId] = useState(""); // ✅ OBAVEZNO
+  const [categoryId, setCategoryId] = useState("");
   const [sourceType, setSourceType] = useState("ZDRAVO");
   const [sourceReference, setSourceReference] = useState("");
   const [imageUrl, setImageUrl] = useState("");
 
-  const [search, setSearch] = useState("");
-
-  const filtered = useMemo(() => {
-    const q = search.trim().toLowerCase();
-    if (!q) return recipes;
-    return recipes.filter((r) => {
-      const t = (r.title || "").toLowerCase();
-      const s = (r.shortDescription || "").toLowerCase();
-      const c = (r.Category?.name || "").toLowerCase();
-      return t.includes(q) || s.includes(q) || c.includes(q);
-    });
-  }, [recipes, search]);
-
-  async function fetchRecipes() {
-    try {
-      setLoading(true);
-      setError("");
-      const res = await api.get("/recipes");
-      setRecipes(Array.isArray(res.data) ? res.data : []);
-    } catch (e) {
-      setError(e?.response?.data?.message || "Ne mogu učitati recepte.");
-    } finally {
-      setLoading(false);
-    }
-  }
-
   async function fetchCategories() {
     try {
+      setError("");
       const res = await api.get("/categories");
       const list = Array.isArray(res.data) ? res.data : [];
       setCategories(list);
 
-      // ako nema izabrane kategorije, izaberi prvu (UX)
-      if (!categoryId && list.length > 0) {
-        setCategoryId(String(list[0].id));
-      }
+      if (!categoryId && list.length > 0) setCategoryId(String(list[0].id));
     } catch (e) {
-      // ne blokiramo cijelu stranicu, ali javimo korisniku
       setError(e?.response?.data?.message || "Ne mogu učitati kategorije.");
     }
   }
 
   useEffect(() => {
-    // učitaj i kategorije i recepte
     fetchCategories();
-    fetchRecipes();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -87,23 +53,8 @@ export default function Recipes() {
     setSourceType("ZDRAVO");
     setSourceReference("");
     setImageUrl("");
-
-    // vrati na prvu kategoriju ako postoji
     if (categories.length > 0) setCategoryId(String(categories[0].id));
     else setCategoryId("");
-  }
-
-  function startEdit(recipe) {
-    setMode("edit");
-    setEditingId(recipe.id);
-    setTitle(recipe.title || "");
-    setShortDescription(recipe.shortDescription || "");
-    setInstructions(recipe.instructions || "");
-    setCategoryId(recipe.categoryId ? String(recipe.categoryId) : "");
-    setSourceType(recipe.sourceType || "ZDRAVO");
-    setSourceReference(recipe.sourceReference || "");
-    setImageUrl(recipe.imageUrl || "");
-    window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   async function handleSubmit(e) {
@@ -114,21 +65,19 @@ export default function Recipes() {
       setError("Naslov i upute su obavezni.");
       return;
     }
-
     if (!categoryId) {
       setError("Kategorija je obavezna (categoryId).");
       return;
     }
-
     if (!token) {
-      setError("Moraš biti prijavljena da dodaješ/uređuješ recepte.");
+      setError("Moraš biti prijavljena da dodaješ recepte.");
       return;
     }
 
     const payload = {
       title: title.trim(),
       instructions: instructions.trim(),
-      categoryId: Number(categoryId), // ✅ backend traži broj
+      categoryId: Number(categoryId),
       shortDescription: shortDescription.trim() || null,
       sourceType,
       sourceReference: sourceReference.trim() || null,
@@ -144,30 +93,13 @@ export default function Recipes() {
         await api.put(`/recipes/${editingId}`, payload, { headers });
       }
 
-      await fetchRecipes();
       resetForm();
+      // (opcionalno) prebaci na listu recepata nakon dodavanja:
+      // navigate("/recipes");
     } catch (e) {
       const msg = e?.response?.data?.message || "Spremanje nije uspjelo.";
       const code = e?.response?.status;
       setError(code ? `${msg} (HTTP ${code})` : msg);
-    }
-  }
-
-  async function handleDelete(id) {
-    if (!token) {
-      setError("Moraš biti prijavljena da brišeš recepte.");
-      return;
-    }
-
-    const ok = window.confirm("Da li sigurno želiš obrisati ovaj recept?");
-    if (!ok) return;
-
-    try {
-      const headers = { Authorization: `Bearer ${token}` };
-      await api.delete(`/recipes/${id}`, { headers });
-      await fetchRecipes();
-    } catch (e) {
-      setError(e?.response?.data?.message || "Brisanje nije uspjelo.");
     }
   }
 
@@ -176,29 +108,23 @@ export default function Recipes() {
       <div style={styles.page}>
         <div style={styles.headerRow}>
           <div>
-            <h2 style={styles.h2}>Recepti</h2>
+            <h2 style={styles.h2}>Dodaj recept</h2>
             <p style={styles.sub}>
-              Sunnetna trpeza — recepti inspirisani Kur'anom, hadisima i zdravom ishranom.
+              Unesi novi recept i sačuvaj ga u bazi.
             </p>
           </div>
-
-          <button style={styles.secondaryBtn} onClick={fetchRecipes}>
-            Osvježi
-          </button>
         </div>
 
         <div style={styles.card}>
-          <h3 style={styles.h3}>{mode === "create" ? "Dodaj recept" : "Uredi recept"}</h3>
-
           {!token && (
-            <p style={styles.warn}>⚠️ Za dodavanje/uređivanje/brisanje moraš biti prijavljena.</p>
+            <p style={styles.warn}>⚠️ Za dodavanje moraš biti prijavljena.</p>
           )}
 
           {error && <p style={styles.error}>{error}</p>}
 
           {categories.length === 0 && (
             <p style={styles.warn}>
-              ⚠️ Nema kategorija. Prvo dodaj kategorije u sekciji “Kategorije”, pa onda možeš dodavati recepte.
+              ⚠️ Nema kategorija. Prvo dodaj kategorije u sekciji “Kategorije”.
             </p>
           )}
 
@@ -287,79 +213,14 @@ export default function Recipes() {
 
             <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
               <button style={styles.primaryBtn} type="submit" disabled={categories.length === 0}>
-                {mode === "create" ? "Sačuvaj" : "Spasi izmjene"}
+                Sačuvaj
               </button>
 
-              {mode === "edit" && (
-                <button style={styles.secondaryBtn} type="button" onClick={resetForm}>
-                  Odustani
-                </button>
-              )}
+              <button style={styles.secondaryBtn} type="button" onClick={resetForm}>
+                Očisti
+              </button>
             </div>
           </form>
-        </div>
-
-        <div style={styles.card}>
-          <div style={styles.listTop}>
-            <h3 style={styles.h3}>Lista recepata</h3>
-
-            <input
-              style={{ ...styles.input, maxWidth: 320 }}
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Pretraga po naslovu / opisu / kategoriji..."
-            />
-          </div>
-
-          {loading ? (
-            <p>Učitavam...</p>
-          ) : filtered.length === 0 ? (
-            <p>Nema recepata.</p>
-          ) : (
-            <div style={styles.grid}>
-              {filtered.map((r) => (
-                <div key={r.id} style={styles.recipeCard}>
-                  {r.imageUrl ? (
-                    <img src={r.imageUrl} alt={r.title} style={styles.image} />
-                  ) : (
-                    <div style={styles.imagePlaceholder}>🍯</div>
-                  )}
-
-                  <div style={{ padding: 14 }}>
-                    <div style={styles.badgeRow}>
-                      <span style={styles.badge}>{r.sourceType || "ZDRAVO"}</span>
-                      <span style={styles.muted}>
-                        {r.createdAt ? new Date(r.createdAt).toLocaleDateString() : ""}
-                      </span>
-                    </div>
-
-                    <h4 style={styles.title}>{r.title}</h4>
-
-                    {/* ✅ kategorija */}
-                    <p style={{ margin: "0 0 8px", fontSize: 13, opacity: 0.85 }}>
-                      <b>Kategorija:</b> {r.Category?.name || "—"}
-                    </p>
-
-                    {r.shortDescription && <p style={styles.desc}>{r.shortDescription}</p>}
-                    {r.sourceReference && (
-                      <p style={styles.ref}>
-                        <b>Referenca:</b> {r.sourceReference}
-                      </p>
-                    )}
-
-                    <div style={styles.btnRow}>
-                      <button style={styles.smallBtn} onClick={() => startEdit(r)}>
-                        Uredi
-                      </button>
-                      <button style={styles.dangerBtn} onClick={() => handleDelete(r.id)}>
-                        Obriši
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
         </div>
       </div>
     </div>
@@ -388,7 +249,6 @@ const styles = {
     boxShadow: "0 8px 20px rgba(0,0,0,0.06)",
     marginTop: 16,
   },
-  h3: { margin: "0 0 10px", fontSize: 18 },
   warn: { margin: "6px 0 10px", color: "#8a6d3b" },
   error: { margin: "6px 0 10px", color: "crimson" },
 
@@ -430,68 +290,5 @@ const styles = {
     cursor: "pointer",
     background: "transparent",
     fontWeight: 600,
-  },
-
-  listTop: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    gap: 10,
-    marginBottom: 10,
-  },
-  grid: {
-    display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
-    gap: 14,
-  },
-
-  recipeCard: {
-    background: "white",
-    borderRadius: 16,
-    border: "1px solid rgba(0,0,0,0.06)",
-    overflow: "hidden",
-    boxShadow: "0 8px 18px rgba(0,0,0,0.05)",
-  },
-  image: { width: "100%", height: 160, objectFit: "cover" },
-  imagePlaceholder: {
-    width: "100%",
-    height: 160,
-    display: "grid",
-    placeItems: "center",
-    fontSize: 46,
-    background: "#f1e7d6",
-  },
-
-  badgeRow: { display: "flex", justifyContent: "space-between", gap: 8, marginBottom: 8 },
-  badge: {
-    fontSize: 12,
-    padding: "4px 10px",
-    borderRadius: 999,
-    background: "#f1e7d6",
-    border: "1px solid rgba(0,0,0,0.08)",
-    fontWeight: 700,
-  },
-  muted: { fontSize: 12, opacity: 0.6 },
-
-  title: { margin: "0 0 6px", fontSize: 16 },
-  desc: { margin: "0 0 10px", opacity: 0.8 },
-  ref: { margin: "0 0 12px", fontSize: 13, opacity: 0.85 },
-
-  btnRow: { display: "flex", gap: 10 },
-  smallBtn: {
-    padding: "8px 10px",
-    borderRadius: 10,
-    border: "1px solid rgba(0,0,0,0.14)",
-    background: "transparent",
-    cursor: "pointer",
-    fontWeight: 600,
-  },
-  dangerBtn: {
-    padding: "8px 10px",
-    borderRadius: 10,
-    border: "none",
-    background: "#ffdddd",
-    cursor: "pointer",
-    fontWeight: 700,
   },
 };

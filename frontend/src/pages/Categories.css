@@ -1,0 +1,134 @@
+/* Categories.css */
+
+.categories-shell {
+  min-height: 100vh;
+  background: #f7f1e6;
+  padding: 24px 16px;
+}
+
+.categories-page {
+  max-width: 980px;
+  margin: 0 auto;
+  color: #1f1f1f;
+}
+
+.categories-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.categories-title {
+  margin: 0;
+  font-size: 28px;
+}
+
+.categories-subtitle {
+  margin: 6px 0 0;
+  opacity: 0.75;
+}
+
+.categories-card {
+  background: #fffaf0;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
+  margin-top: 16px;
+}
+
+.categories-h3 {
+  margin: 0 0 10px;
+  font-size: 18px;
+}
+
+.categories-error {
+  margin: 6px 0 10px;
+  color: crimson;
+}
+
+.categories-form {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.categories-input {
+  flex: 1;
+  min-width: 240px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  outline: none;
+  background: #ffffff;
+}
+
+.categories-input:focus {
+  border-color: rgba(200, 169, 106, 0.9);
+  box-shadow: 0 0 0 3px rgba(200, 169, 106, 0.18);
+}
+
+.categories-btn {
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: none;
+  cursor: pointer;
+  background: #c8a96a;
+  color: #1f1f1f;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.categories-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.categories-listTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+}
+
+.categories-count {
+  font-size: 13px;
+  opacity: 0.7;
+}
+
+.categories-empty {
+  margin: 0;
+  opacity: 0.8;
+}
+
+.categories-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.categories-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.04);
+  font-weight: 700;
+}
+
+.categories-chipDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: #c8a96a;
+  display: inline-block;
+}
