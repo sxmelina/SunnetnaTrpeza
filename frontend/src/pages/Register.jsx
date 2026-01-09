@@ -1,75 +1,86 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import api from "../api/client";
+import "./Register.css";
 
 export default function Register() {
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
+  const [err, setErr] = useState("");
+  const [loading, setLoading] = useState(false);
+
   const navigate = useNavigate();
 
   async function handleSubmit(e) {
     e.preventDefault();
-    setError("");
+    setErr("");
+    setLoading(true);
 
     try {
       await api.post("/auth/register", {
-        fullName,
-        email,
+        fullName: fullName.trim(),
+        email: email.trim(),
         password,
       });
 
-      // nakon uspješne registracije -> login
       navigate("/login");
-    } catch (err) {
-      setError("Registracija nije uspjela.");
+    } catch (e) {
+      console.log("REGISTER ERROR:", e);
+      console.log("REGISTER RESPONSE:", e?.response);
+      setErr(
+        e?.response?.data?.message ||
+          e?.response?.data?.error ||
+          `Registracija nije uspjela. (HTTP ${e?.response?.status || "?"})`
+      );
+    }
+finally {
+      setLoading(false);
     }
   }
 
   return (
-    <form onSubmit={handleSubmit} style={styles.card}>
-      <h2 style={styles.h2}>Registracija</h2>
+    <div className="register-page">
+      <div className="register-card">
+        <h2 className="register-title">Registracija</h2>
 
-      {error && <p style={{ color: "red" }}>{error}</p>}
+        {err && <p className="register-error">{err}</p>}
 
-      <label style={styles.label}>Ime i prezime</label>
-      <input
-        style={styles.input}
-        value={fullName}
-        onChange={(e) => setFullName(e.target.value)}
-      />
+        <form onSubmit={handleSubmit}>
+          <label className="register-label">Ime i prezime</label>
+          <input
+            className="register-input"
+            placeholder="npr. Amina Subašić"
+            value={fullName}
+            onChange={(e) => setFullName(e.target.value)}
+          />
 
-      <label style={styles.label}>Email</label>
-      <input
-        style={styles.input}
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-      />
+          <label className="register-label">Email</label>
+          <input
+            className="register-input"
+            placeholder="npr. amina@mail.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
 
-      <label style={styles.label}>Lozinka</label>
-      <input
-        style={styles.input}
-        type="password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-      />
+          <label className="register-label">Lozinka</label>
+          <input
+            className="register-input"
+            type="password"
+            placeholder="••••••••"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
 
-      <button style={styles.btn}>Registruj se</button>
-    </form>
+          <button className="register-btn" disabled={loading} type="submit">
+            {loading ? "Registrujem..." : "Registruj se"}
+          </button>
+
+          <p className="register-footer">
+            Već imaš račun? <Link to="/login">Prijavi se</Link>
+          </p>
+        </form>
+      </div>
+    </div>
   );
 }
-
-const styles = {
-  card: {
-    background: "#fff",
-    borderRadius: 16,
-    padding: 20,
-    maxWidth: 420,
-    margin: "0 auto",
-  },
-  h2: { marginTop: 0 },
-  label: { marginTop: 12, display: "block" },
-  input: { width: "100%", padding: 10 },
-  btn: { marginTop: 16, padding: 10 },
-};

@@ -1,0 +1,51 @@
+.navbar {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.92);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  backdrop-filter: blur(6px);
+}
+
+.navbar-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 16px 28px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* Naslov / logo */
+.navbar-brand a {
+  font-family: "Great Vibes", cursive;
+  font-size: 45px;
+  font-weight: 500;
+  color: #6b4f3f;
+  letter-spacing: 1px;
+}
+
+
+/* Linkovi */
+.navbar-links {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.navlink {
+  text-decoration: none;
+  padding: 10px 16px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #222;
+  transition: all 0.2s ease;
+}
+
+.navlink:hover {
+  background: rgba(231, 210, 181, 0.45);
+}
+
+.navlink.active {
+  background: #efe3cf;
+}

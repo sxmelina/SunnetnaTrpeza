@@ -1,8 +1,11 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Navbar from "./components/Navbar";
+
 import Login from "./pages/Login";
+import Register from "./pages/Register";
 import Recipes from "./pages/Recipes";
 import Categories from "./pages/Categories";
+
 import { AuthProvider } from "./auth/AuthContext";
 import ProtectedRoute from "./auth/ProtectedRoute";
 
@@ -13,11 +16,14 @@ export default function App() {
         <div style={styles.app}>
           <Navbar />
 
-          {/* ❗ NEMA maxWidth ovdje */}
           <main style={styles.main}>
             <Routes>
+              {/* public */}
+              <Route path="/" element={<Navigate to="/login" replace />} />
               <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
 
+              {/* protected */}
               <Route
                 path="/recipes"
                 element={
@@ -36,7 +42,7 @@ export default function App() {
                 }
               />
 
-              <Route path="/" element={<Navigate to="/login" replace />} />
+              {/* fallback */}
               <Route path="*" element={<div>404 - Stranica ne postoji</div>} />
             </Routes>
           </main>
@@ -49,10 +55,8 @@ export default function App() {
 const styles = {
   app: {
     minHeight: "100vh",
-    background: "#f7f1e6", // bež pozadina preko cijelog ekrana
+    background: "#f7f1e6",
   },
-
-  // ❗ main je FULL WIDTH
   main: {
     width: "100%",
   },
