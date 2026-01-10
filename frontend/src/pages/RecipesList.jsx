@@ -1,12 +1,16 @@
 import { useEffect, useMemo, useState } from "react";
 import api from "../api/client";
+import RecipeModal from "../components/RecipeModal";
 import "./RecipesList.css";
 
-export default function Recipes() {
+export default function RecipeList() {
   const [recipes, setRecipes] = useState([]);
+  const [categories, setCategories] = useState([]);
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [q, setQ] = useState("");
+
+  const [search, setSearch] = useState("");
   const [selected, setSelected] = useState(null);
 
   async function fetchRecipes() {
@@ -22,143 +26,117 @@ export default function Recipes() {
     }
   }
 
+  async function fetchCategories() {
+    try {
+      const res = await api.get("/categories");
+      setCategories(Array.isArray(res.data) ? res.data : []);
+    } catch {
+      // kategorije su potrebne za edit u modalu; ako faila, modal će i dalje raditi ali bez dropdown-a
+      setCategories([]);
+    }
+  }
+
   useEffect(() => {
     fetchRecipes();
+    fetchCategories();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const filtered = useMemo(() => {
-    const s = q.trim().toLowerCase();
-    if (!s) return recipes;
+    const q = search.trim().toLowerCase();
+    if (!q) return recipes;
 
     return recipes.filter((r) => {
-      const title = (r.title || "").toLowerCase();
-      const desc = (r.shortDescription || "").toLowerCase();
+      const t = (r.title || "").toLowerCase();
+      const s = (r.shortDescription || "").toLowerCase();
       const ref = (r.sourceReference || "").toLowerCase();
-      return title.includes(s) || desc.includes(s) || ref.includes(s);
+      return t.includes(q) || s.includes(q) || ref.includes(q);
     });
-  }, [recipes, q]);
+  }, [recipes, search]);
 
   return (
-    <div className="recipes-shell">
-      <div className="recipes-wrap">
-        <header className="recipes-top">
+    <div className="rl-shell">
+      <div className="rl-page">
+        <div className="rl-top">
           <div>
-            <h1 className="recipes-h1">Recepti</h1>
-            <p className="recipes-sub">
+            <h1 className="rl-h1">Recepti</h1>
+            <p className="rl-sub">
               Pregled svih unesenih recepata — inspirisano Kur'anom, hadisima i zdravom ishranom.
             </p>
           </div>
 
-          <div className="recipes-actions">
+          <div className="rl-actions">
             <input
-              className="recipes-search"
-              placeholder="Pretraga po naslovu/opisu/referenci…"
-              value={q}
-              onChange={(e) => setQ(e.target.value)}
+              className="rl-search"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Pretraga po naslovu/opisu/referenci..."
             />
-            <button className="recipes-btn" onClick={fetchRecipes}>
+            <button className="rl-btn" onClick={fetchRecipes}>
               Osvježi
             </button>
           </div>
-        </header>
+        </div>
 
-        {error && <div className="recipes-alert recipes-alert--error">{error}</div>}
+        {error && <div className="rl-alert rl-alert-error">{error}</div>}
 
         {loading ? (
-          <div className="recipes-loading">Učitavam…</div>
+          <div className="rl-empty">Učitavam...</div>
         ) : filtered.length === 0 ? (
-          <div className="recipes-empty">
-            Nema recepata za prikaz. Dodaj novi recept na stranici “Dodaj recept”.
-          </div>
+          <div className="rl-empty">Nema recepata.</div>
         ) : (
-          <section className="recipes-grid">
+          <div className="rl-grid">
             {filtered.map((r) => (
-              <article
+              <button
                 key={r.id}
-                className="recipe-card"
+                className="rl-card"
                 onClick={() => setSelected(r)}
-                role="button"
-                tabIndex={0}
+                title="Otvori recept"
               >
-                <div className="recipe-media">
-                  {r.imageUrl ? (
-                    <img src={r.imageUrl} alt={r.title} className="recipe-img" loading="lazy" />
-                  ) : (
-                    <div className="recipe-img recipe-img--placeholder">🍯</div>
-                  )}
+                <div className="rl-thumb">
+                  <span className="rl-badge">{r.sourceType || "ZDRAVO"}</span>
 
-                  <div className="recipe-chip">
-                    {r.sourceType || "ZDRAVO"}
-                  </div>
+                  {r.imageUrl ? (
+                    <img className="rl-img" src={r.imageUrl} alt={r.title} loading="lazy" />
+                  ) : (
+                    <div className="rl-imgPlaceholder">🍯</div>
+                  )}
                 </div>
 
-                <div className="recipe-body">
-                  <h3 className="recipe-title">{r.title}</h3>
+                <div className="rl-body">
+                  <h3 className="rl-title">{r.title}</h3>
 
                   {r.shortDescription ? (
-                    <p className="recipe-desc">{r.shortDescription}</p>
+                    <p className="rl-desc">{r.shortDescription}</p>
                   ) : (
-                    <p className="recipe-desc recipe-desc--muted">
-                      (Nema kratkog opisa)
-                    </p>
+                    <p className="rl-desc rl-desc-muted">Nema kratkog opisa.</p>
                   )}
 
-                  <div className="recipe-meta">
-                    <span className="recipe-date">
+                  <div className="rl-bottomRow">
+                    <span className="rl-date">
                       {r.createdAt ? new Date(r.createdAt).toLocaleDateString() : ""}
                     </span>
-                    <span className="recipe-open">Otvori →</span>
+                    <span className="rl-open">
+                      Otvori <span aria-hidden>→</span>
+                    </span>
                   </div>
                 </div>
-              </article>
+              </button>
             ))}
-          </section>
+          </div>
         )}
       </div>
 
-      {/* MODAL */}
-      {selected && (
-        <div className="modal-backdrop" onClick={() => setSelected(null)}>
-          <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <button className="modal-x" onClick={() => setSelected(null)} aria-label="Zatvori">
-              ✕
-            </button>
-
-            <div className="modal-head">
-              <div>
-                <div className="modal-chip">{selected.sourceType || "ZDRAVO"}</div>
-                <h2 className="modal-title">{selected.title}</h2>
-                {selected.shortDescription && <p className="modal-sub">{selected.shortDescription}</p>}
-              </div>
-
-              {selected.imageUrl && (
-                <img className="modal-img" src={selected.imageUrl} alt={selected.title} />
-              )}
-            </div>
-
-            <div className="modal-section">
-              <h4>Upute / način pripreme</h4>
-              <p className="modal-text">{selected.instructions}</p>
-            </div>
-
-            {(selected.sourceReference || selected.Category?.name) && (
-              <div className="modal-section">
-                <h4>Dodatno</h4>
-                {selected.Category?.name && (
-                  <p className="modal-text">
-                    <b>Kategorija:</b> {selected.Category.name}
-                  </p>
-                )}
-                {selected.sourceReference && (
-                  <p className="modal-text">
-                    <b>Referenca:</b> {selected.sourceReference}
-                  </p>
-                )}
-              </div>
-            )}
-          </div>
-        </div>
-      )}
+      <RecipeModal
+        open={Boolean(selected)}
+        recipe={selected}
+        categories={categories}
+        onClose={() => setSelected(null)}
+        onUpdated={async () => {
+          await fetchRecipes();
+          setSelected(null);
+        }}
+      />
     </div>
   );
 }
