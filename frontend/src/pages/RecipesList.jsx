@@ -1,26 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
 import api from "../api/client";
-import { useAuth } from "../auth/AuthContext";
+import "./RecipesList.css";
 
-export default function RecipesList() {
-  const { token } = useAuth();
-
+export default function Recipes() {
   const [recipes, setRecipes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-
-  const [search, setSearch] = useState("");
-
-  const filtered = useMemo(() => {
-    const q = search.trim().toLowerCase();
-    if (!q) return recipes;
-    return recipes.filter((r) => {
-      const t = (r.title || "").toLowerCase();
-      const s = (r.shortDescription || "").toLowerCase();
-      const c = (r.Category?.name || "").toLowerCase();
-      return t.includes(q) || s.includes(q) || c.includes(q);
-    });
-  }, [recipes, search]);
+  const [q, setQ] = useState("");
+  const [selected, setSelected] = useState(null);
 
   async function fetchRecipes() {
     try {
@@ -35,195 +22,143 @@ export default function RecipesList() {
     }
   }
 
-  async function handleDelete(id) {
-    if (!token) {
-      setError("Moraš biti prijavljena da brišeš recepte.");
-      return;
-    }
-
-    const ok = window.confirm("Da li sigurno želiš obrisati ovaj recept?");
-    if (!ok) return;
-
-    try {
-      const headers = { Authorization: `Bearer ${token}` };
-      await api.delete(`/recipes/${id}`, { headers });
-      await fetchRecipes();
-    } catch (e) {
-      setError(e?.response?.data?.message || "Brisanje nije uspjelo.");
-    }
-  }
-
   useEffect(() => {
     fetchRecipes();
   }, []);
 
+  const filtered = useMemo(() => {
+    const s = q.trim().toLowerCase();
+    if (!s) return recipes;
+
+    return recipes.filter((r) => {
+      const title = (r.title || "").toLowerCase();
+      const desc = (r.shortDescription || "").toLowerCase();
+      const ref = (r.sourceReference || "").toLowerCase();
+      return title.includes(s) || desc.includes(s) || ref.includes(s);
+    });
+  }, [recipes, q]);
+
   return (
-    <div style={styles.shell}>
-      <div style={styles.page}>
-        <div style={styles.listTop}>
+    <div className="recipes-shell">
+      <div className="recipes-wrap">
+        <header className="recipes-top">
           <div>
-            <h2 style={styles.h2}>Recepti</h2>
-            <p style={styles.sub}>
-              Pregled svih recepata koje su korisnici dodali.
+            <h1 className="recipes-h1">Recepti</h1>
+            <p className="recipes-sub">
+              Pregled svih unesenih recepata — inspirisano Kur'anom, hadisima i zdravom ishranom.
             </p>
           </div>
 
-          <button style={styles.secondaryBtn} onClick={fetchRecipes}>
-            Osvježi
-          </button>
-        </div>
-
-        <div style={styles.card}>
-          <div style={styles.searchRow}>
+          <div className="recipes-actions">
             <input
-              style={{ ...styles.input, maxWidth: 360 }}
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Pretraga po naslovu / opisu / kategoriji..."
+              className="recipes-search"
+              placeholder="Pretraga po naslovu/opisu/referenci…"
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
             />
+            <button className="recipes-btn" onClick={fetchRecipes}>
+              Osvježi
+            </button>
           </div>
+        </header>
 
-          {error && <p style={styles.error}>{error}</p>}
+        {error && <div className="recipes-alert recipes-alert--error">{error}</div>}
 
-          {loading ? (
-            <p>Učitavam...</p>
-          ) : filtered.length === 0 ? (
-            <p>Nema recepata.</p>
-          ) : (
-            <div style={styles.grid}>
-              {filtered.map((r) => (
-                <div key={r.id} style={styles.recipeCard}>
+        {loading ? (
+          <div className="recipes-loading">Učitavam…</div>
+        ) : filtered.length === 0 ? (
+          <div className="recipes-empty">
+            Nema recepata za prikaz. Dodaj novi recept na stranici “Dodaj recept”.
+          </div>
+        ) : (
+          <section className="recipes-grid">
+            {filtered.map((r) => (
+              <article
+                key={r.id}
+                className="recipe-card"
+                onClick={() => setSelected(r)}
+                role="button"
+                tabIndex={0}
+              >
+                <div className="recipe-media">
                   {r.imageUrl ? (
-                    <img src={r.imageUrl} alt={r.title} style={styles.image} />
+                    <img src={r.imageUrl} alt={r.title} className="recipe-img" loading="lazy" />
                   ) : (
-                    <div style={styles.imagePlaceholder}>🍯</div>
+                    <div className="recipe-img recipe-img--placeholder">🍯</div>
                   )}
 
-                  <div style={{ padding: 14 }}>
-                    <div style={styles.badgeRow}>
-                      <span style={styles.badge}>{r.sourceType || "ZDRAVO"}</span>
-                      <span style={styles.muted}>
-                        {r.createdAt ? new Date(r.createdAt).toLocaleDateString() : ""}
-                      </span>
-                    </div>
-
-                    <h4 style={styles.title}>{r.title}</h4>
-
-                    <p style={{ margin: "0 0 8px", fontSize: 13, opacity: 0.85 }}>
-                      <b>Kategorija:</b> {r.Category?.name || "—"}
-                    </p>
-
-                    {r.shortDescription && <p style={styles.desc}>{r.shortDescription}</p>}
-
-                    {r.sourceReference && (
-                      <p style={styles.ref}>
-                        <b>Referenca:</b> {r.sourceReference}
-                      </p>
-                    )}
-
-                    <button style={styles.dangerBtn} onClick={() => handleDelete(r.id)}>
-                      Obriši
-                    </button>
+                  <div className="recipe-chip">
+                    {r.sourceType || "ZDRAVO"}
                   </div>
                 </div>
-              ))}
-            </div>
-          )}
-        </div>
+
+                <div className="recipe-body">
+                  <h3 className="recipe-title">{r.title}</h3>
+
+                  {r.shortDescription ? (
+                    <p className="recipe-desc">{r.shortDescription}</p>
+                  ) : (
+                    <p className="recipe-desc recipe-desc--muted">
+                      (Nema kratkog opisa)
+                    </p>
+                  )}
+
+                  <div className="recipe-meta">
+                    <span className="recipe-date">
+                      {r.createdAt ? new Date(r.createdAt).toLocaleDateString() : ""}
+                    </span>
+                    <span className="recipe-open">Otvori →</span>
+                  </div>
+                </div>
+              </article>
+            ))}
+          </section>
+        )}
       </div>
+
+      {/* MODAL */}
+      {selected && (
+        <div className="modal-backdrop" onClick={() => setSelected(null)}>
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
+            <button className="modal-x" onClick={() => setSelected(null)} aria-label="Zatvori">
+              ✕
+            </button>
+
+            <div className="modal-head">
+              <div>
+                <div className="modal-chip">{selected.sourceType || "ZDRAVO"}</div>
+                <h2 className="modal-title">{selected.title}</h2>
+                {selected.shortDescription && <p className="modal-sub">{selected.shortDescription}</p>}
+              </div>
+
+              {selected.imageUrl && (
+                <img className="modal-img" src={selected.imageUrl} alt={selected.title} />
+              )}
+            </div>
+
+            <div className="modal-section">
+              <h4>Upute / način pripreme</h4>
+              <p className="modal-text">{selected.instructions}</p>
+            </div>
+
+            {(selected.sourceReference || selected.Category?.name) && (
+              <div className="modal-section">
+                <h4>Dodatno</h4>
+                {selected.Category?.name && (
+                  <p className="modal-text">
+                    <b>Kategorija:</b> {selected.Category.name}
+                  </p>
+                )}
+                {selected.sourceReference && (
+                  <p className="modal-text">
+                    <b>Referenca:</b> {selected.sourceReference}
+                  </p>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
-
-const styles = {
-  shell: { minHeight: "100vh", background: "#f7f1e6", padding: "24px 16px" },
-  page: { maxWidth: 980, margin: "0 auto", color: "#1f1f1f" },
-
-  listTop: {
-    display: "flex",
-    gap: 12,
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-    marginBottom: 14,
-  },
-  h2: { margin: 0, fontSize: 28 },
-  sub: { margin: "6px 0 0", opacity: 0.75 },
-
-  card: {
-    background: "#fffaf0",
-    border: "1px solid rgba(0,0,0,0.06)",
-    borderRadius: 16,
-    padding: 16,
-    boxShadow: "0 8px 20px rgba(0,0,0,0.06)",
-  },
-
-  searchRow: { display: "flex", justifyContent: "flex-end", marginBottom: 10 },
-
-  input: {
-    width: "100%",
-    padding: "10px 12px",
-    borderRadius: 12,
-    border: "1px solid rgba(0,0,0,0.12)",
-    outline: "none",
-    background: "white",
-  },
-
-  error: { margin: "6px 0 10px", color: "crimson" },
-
-  grid: {
-    display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
-    gap: 14,
-  },
-
-  recipeCard: {
-    background: "white",
-    borderRadius: 16,
-    border: "1px solid rgba(0,0,0,0.06)",
-    overflow: "hidden",
-    boxShadow: "0 8px 18px rgba(0,0,0,0.05)",
-  },
-
-  image: { width: "100%", height: 160, objectFit: "cover" },
-  imagePlaceholder: {
-    width: "100%",
-    height: 160,
-    display: "grid",
-    placeItems: "center",
-    fontSize: 46,
-    background: "#f1e7d6",
-  },
-
-  badgeRow: { display: "flex", justifyContent: "space-between", gap: 8, marginBottom: 8 },
-  badge: {
-    fontSize: 12,
-    padding: "4px 10px",
-    borderRadius: 999,
-    background: "#f1e7d6",
-    border: "1px solid rgba(0,0,0,0.08)",
-    fontWeight: 700,
-  },
-  muted: { fontSize: 12, opacity: 0.6 },
-
-  title: { margin: "0 0 6px", fontSize: 16 },
-  desc: { margin: "0 0 10px", opacity: 0.8 },
-  ref: { margin: "0 0 12px", fontSize: 13, opacity: 0.85 },
-
-  secondaryBtn: {
-    padding: "10px 14px",
-    borderRadius: 12,
-    border: "1px solid rgba(0,0,0,0.14)",
-    cursor: "pointer",
-    background: "transparent",
-    fontWeight: 600,
-  },
-
-  dangerBtn: {
-    padding: "10px 12px",
-    borderRadius: 12,
-    border: "none",
-    background: "#ffdddd",
-    cursor: "pointer",
-    fontWeight: 800,
-  },
-};

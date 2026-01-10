@@ -62,7 +62,7 @@ export default function Categories() {
           <div>
             <h2 className="categories-title">Kategorije</h2>
             <p className="categories-subtitle">
-              Dodaj kategorije (npr. Med, Napici, Žitarice…) da bi ih koristila pri dodavanju recepata.
+              Ukoliko nijedna od već postojećih kategorija ne odgovara Vašem receptu, molimo dodajte novu odgovarajuću kategoriju, kako biste uspješno mogli sačuvati recept.
             </p>
           </div>
         </div>

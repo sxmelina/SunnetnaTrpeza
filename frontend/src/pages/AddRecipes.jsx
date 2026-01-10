@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import api from "../api/client";
 import { useAuth } from "../auth/AuthContext";
+import "./AddRecipes.css";
 
 const SOURCE_TYPES = [
   { value: "HADIS", label: "Hadis" },
@@ -94,8 +95,6 @@ export default function AddRecipes() {
       }
 
       resetForm();
-      // (opcionalno) prebaci na listu recepata nakon dodavanja:
-      // navigate("/recipes");
     } catch (e) {
       const msg = e?.response?.data?.message || "Spremanje nije uspjelo.";
       const code = e?.response?.status;
@@ -104,191 +103,155 @@ export default function AddRecipes() {
   }
 
   return (
-    <div style={styles.shell}>
-      <div style={styles.page}>
-        <div style={styles.headerRow}>
+    <div className="add-shell">
+      <div className="add-page">
+        <div className="add-header">
           <div>
-            <h2 style={styles.h2}>Dodaj recept</h2>
-            <p style={styles.sub}>
-              Unesi novi recept i sačuvaj ga u bazi.
-            </p>
+            <h2 className="add-title">Dodaj recept</h2>
+            <p className="add-sub">Unesi novi recept i sačuvaj ga u bazi.</p>
           </div>
         </div>
 
-        <div style={styles.card}>
-          {!token && (
-            <p style={styles.warn}>⚠️ Za dodavanje moraš biti prijavljena.</p>
-          )}
+        <div className="split-card">
+          {/* LEFT PANEL */}
+          <div className="split-left">
+            <h3 className="hero-h">
+              Unos
+              <br />
+              recepta
+            </h3>
+           <p className="hero-ayat">
+             “O ljudi, jedite od onoga što je na Zemlji dopušteno i lijepo.”
+             <span>Kur'an, El-Bekare (2:168)</span>
+           </p>
 
-          {error && <p style={styles.error}>{error}</p>}
 
-          {categories.length === 0 && (
-            <p style={styles.warn}>
-              ⚠️ Nema kategorija. Prvo dodaj kategorije u sekciji “Kategorije”.
-            </p>
-          )}
 
-          <form onSubmit={handleSubmit} style={styles.formGrid}>
-            <div style={styles.col2}>
-              <label style={styles.label}>Naslov *</label>
-              <input
-                style={styles.input}
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                placeholder="npr. Telbina"
-              />
+
+
+
+            <div className="motif" />
+          </div>
+
+          {/* RIGHT FORM */}
+          <div className="split-right">
+            <div className="form-top">
+              <div>
+                <h4 className="form-h">Forma za unos</h4>
+                <p className="form-note">Polja sa * su obavezna.</p>
+              </div>
             </div>
 
-            <div style={styles.col2}>
-              <label style={styles.label}>Kategorija *</label>
-              <select
-                style={styles.input}
-                value={categoryId}
-                onChange={(e) => setCategoryId(e.target.value)}
-                disabled={categories.length === 0}
-              >
-                {categories.map((c) => (
-                  <option key={c.id} value={String(c.id)}>
-                    {c.name}
-                  </option>
-                ))}
-              </select>
-            </div>
+            {!token && <div className="alert alert-warn">⚠️ Za dodavanje moraš biti prijavljena.</div>}
 
-            <div>
-              <label style={styles.label}>Tip izvora</label>
-              <select
-                style={styles.input}
-                value={sourceType}
-                onChange={(e) => setSourceType(e.target.value)}
-              >
-                {SOURCE_TYPES.map((x) => (
-                  <option key={x.value} value={x.value}>
-                    {x.label}
-                  </option>
-                ))}
-              </select>
-            </div>
+            {error && <div className="alert alert-error">{error}</div>}
 
-            <div style={styles.col2}>
-              <label style={styles.label}>Kratki opis</label>
-              <input
-                style={styles.input}
-                value={shortDescription}
-                onChange={(e) => setShortDescription(e.target.value)}
-                placeholder="kratak opis (opcionalno)"
-              />
-            </div>
+            {categories.length === 0 && (
+              <div className="alert alert-warn">
+                ⚠️ Nema kategorija. Prvo dodaj kategorije u sekciji “Kategorije”.
+              </div>
+            )}
 
-            <div style={styles.col2}>
-              <label style={styles.label}>Upute / način pripreme *</label>
-              <textarea
-                style={styles.textarea}
-                value={instructions}
-                onChange={(e) => setInstructions(e.target.value)}
-                placeholder="napiši upute (obavezno)"
-                rows={5}
-              />
-            </div>
+            <form onSubmit={handleSubmit} className="form-grid">
+              <div className="field full">
+                <label className="label">Naslov *</label>
+                <input
+                  className="input"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder="npr. Telbina"
+                />
+              </div>
 
-            <div style={styles.col2}>
-              <label style={styles.label}>Referenca (hadis/ajet/izvor)</label>
-              <input
-                style={styles.input}
-                value={sourceReference}
-                onChange={(e) => setSourceReference(e.target.value)}
-                placeholder="npr. Sahih al-Bukhari #... / Ajet ..."
-              />
-            </div>
+              <div className="field">
+                <label className="label">Kategorija *</label>
+                <select
+                  className="select"
+                  value={categoryId}
+                  onChange={(e) => setCategoryId(e.target.value)}
+                  disabled={categories.length === 0}
+                >
+                  {categories.map((c) => (
+                    <option key={c.id} value={String(c.id)}>
+                      {c.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
-            <div style={styles.col2}>
-              <label style={styles.label}>Slika (URL)</label>
-              <input
-                style={styles.input}
-                value={imageUrl}
-                onChange={(e) => setImageUrl(e.target.value)}
-                placeholder="https://..."
-              />
-            </div>
+              <div className="field">
+                <label className="label">Tip izvora</label>
+                <select
+                  className="select"
+                  value={sourceType}
+                  onChange={(e) => setSourceType(e.target.value)}
+                >
+                  {SOURCE_TYPES.map((x) => (
+                    <option key={x.value} value={x.value}>
+                      {x.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
-            <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
-              <button style={styles.primaryBtn} type="submit" disabled={categories.length === 0}>
-                Sačuvaj
-              </button>
+              <div className="field full">
+                <label className="label">Kratki opis</label>
+                <input
+                  className="input"
+                  value={shortDescription}
+                  onChange={(e) => setShortDescription(e.target.value)}
+                  placeholder="kratak opis (opcionalno)"
+                />
+              </div>
 
-              <button style={styles.secondaryBtn} type="button" onClick={resetForm}>
-                Očisti
-              </button>
-            </div>
-          </form>
+              <div className="field full">
+                <label className="label">Upute / način pripreme *</label>
+                <textarea
+                  className="textarea"
+                  value={instructions}
+                  onChange={(e) => setInstructions(e.target.value)}
+                  placeholder="napiši upute (obavezno)"
+                  rows={6}
+                />
+              </div>
+
+              <div className="field full">
+                <label className="label">Referenca (hadis/ajet/izvor)</label>
+                <input
+                  className="input"
+                  value={sourceReference}
+                  onChange={(e) => setSourceReference(e.target.value)}
+                  placeholder="npr. Sahih al-Bukhari #... / Ajet ..."
+                />
+              </div>
+
+              <div className="field full">
+                <label className="label">Slika (URL)</label>
+                <input
+                  className="input"
+                  value={imageUrl}
+                  onChange={(e) => setImageUrl(e.target.value)}
+                  placeholder="https://..."
+                />
+              </div>
+
+              <div className="field full">
+                <div className="actions">
+                  <button className="btn btn-primary" type="submit" disabled={categories.length === 0}>
+                    Sačuvaj
+                  </button>
+
+                  <button className="btn btn-secondary" type="button" onClick={resetForm}>
+                    Očisti
+                  </button>
+
+                </div>
+              </div>
+            </form>
+          </div>
         </div>
+
       </div>
     </div>
   );
 }
-
-const styles = {
-  shell: { minHeight: "100vh", background: "#f7f1e6", padding: "24px 16px" },
-  page: { maxWidth: 980, margin: "0 auto", color: "#1f1f1f" },
-
-  headerRow: {
-    display: "flex",
-    gap: 12,
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-    marginBottom: 14,
-  },
-  h2: { margin: 0, fontSize: 28 },
-  sub: { margin: "6px 0 0", opacity: 0.75 },
-
-  card: {
-    background: "#fffaf0",
-    border: "1px solid rgba(0,0,0,0.06)",
-    borderRadius: 16,
-    padding: 16,
-    boxShadow: "0 8px 20px rgba(0,0,0,0.06)",
-    marginTop: 16,
-  },
-  warn: { margin: "6px 0 10px", color: "#8a6d3b" },
-  error: { margin: "6px 0 10px", color: "crimson" },
-
-  formGrid: { display: "grid", gap: 10 },
-  col2: { gridColumn: "1 / -1" },
-
-  label: { fontSize: 13, opacity: 0.8, display: "block", marginBottom: 6 },
-  input: {
-    width: "100%",
-    padding: "10px 12px",
-    borderRadius: 12,
-    border: "1px solid rgba(0,0,0,0.12)",
-    outline: "none",
-    background: "white",
-  },
-  textarea: {
-    width: "100%",
-    padding: "10px 12px",
-    borderRadius: 12,
-    border: "1px solid rgba(0,0,0,0.12)",
-    outline: "none",
-    background: "white",
-    resize: "vertical",
-  },
-
-  primaryBtn: {
-    padding: "10px 14px",
-    borderRadius: 12,
-    border: "none",
-    cursor: "pointer",
-    background: "#c8a96a",
-    color: "#1f1f1f",
-    fontWeight: 700,
-  },
-  secondaryBtn: {
-    padding: "10px 14px",
-    borderRadius: 12,
-    border: "1px solid rgba(0,0,0,0.14)",
-    cursor: "pointer",
-    background: "transparent",
-    fontWeight: 600,
-  },
-};
